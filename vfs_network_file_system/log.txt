@@ -1,0 +1,10 @@
+Naming Server started at IP: 10.2.132.169, Port: 8080
+
+Request from client IP: 10.2.132.169, Port: 51394 REGISTER 10.2.132.169 8080 53603 ./ss1_dir/a.txt 
+
+Request from client IP: 10.2.132.169, Port: 40778 IST
+
+Request from client IP: 10.2.132.169, Port: 37156 LIST
+
+Request from client IP: 10.2.132.169, Port: 38590 READ ./ss1_dir/a.txt
+

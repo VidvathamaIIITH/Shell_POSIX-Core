@@ -1,0 +1,7 @@
+alias home = hop ~
+alias parent = hop ..
+alias previous = hop -
+alias stay = hop .
+alias reveall = reveal -l
+alias reveala = reveal -a
+alias revealal = reveal -a -l
