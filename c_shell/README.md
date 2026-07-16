@@ -1,55 +1,143 @@
-# Custom C Shell
+# Shell_POSIX-Core - POSIX Shell
 
-A custom shell implementation in C. The entire codebase has been meticulously modularized into distinct functional components inside `src/` and `include/`.
+A modular command-line interpreter written in C, reproducing the essential
+behaviour of a POSIX shell and extending it with a rich set of custom built-in
+commands. The interpreter is decomposed into focused source files, each owning a
+single command or subsystem, coordinated through a single shared interface
+header.
 
-## Exhaustive Feature List
+---
 
-### Core Execution & Parsing
-- **Modular Design**: Broken down into specific files for each built-in (`hop.c`, `seek.c`, `reveal.c`, etc.) with a unified `shell.h` header.
-- **System Commands**: `execvp` based system command execution supporting arbitrary length arguments.
-- **Process Management**: Support for Foreground (blocking wait) and Background processes (non-blocking, appended with `&`).
-- **Pipelining**: Support for multiple sequential pipes (`|`) chaining standard outputs to inputs.
-- **Redirection**: Handles standard output redirection (`>`), append redirection (`>>`), and input redirection (`<`). Interoperates successfully with pipes.
-- **Alias Resolution**: Automatically parses `.myshrc` to map shorthand aliases to complex commands.
+**Author:** vidvathamaiiith
+**Copyright:** (c) vidvathamaiiith. All Rights Reserved.
+**Watermark:** vidvathamaiiith
 
-### Built-in Commands
-- **`hop` (cd equivalent)**:
-  - Changes the shell's working directory.
-  - Supports absolute paths, relative paths, `.` (current), `..` (parent), `~` (home directory of shell), and `-` (previous directory).
-- **`reveal` (ls equivalent)**:
-  - Lists directory contents.
-  - Flags: `-a` (show hidden files starting with `.`), `-l` (show detailed file statistics: permissions, links, user, group, size, time).
-  - Uses color coding: Green for executables, Blue for directories, White for regular files.
-- **`seek` (find equivalent)**:
-  - Recursively searches for files or directories by name.
-  - Flags: `-d` (search directories only), `-f` (search files only), `-e` (execute/enter directly if exactly one match is found).
-- **`log` (history equivalent)**:
-  - Maintains a persistent history of executed commands across sessions.
-  - Commands: `log` (display history), `log execute <index>` (re-execute a specific historical command), `log purge` (clear history).
-- **`proclore`**:
-  - Displays detailed process information: PID, Status (R/S/Z/etc.), Process Group, Virtual Memory size, and executable path.
-- **`activities`**:
-  - Lists all currently spawned background processes associated with the shell, sorted by PID, showing their running/stopped state.
-- **`ping <pid> <signal_num>`**:
-  - Sends a specific OS signal to a given process ID.
-- **`fg <pid>`**:
-  - Brings a running or stopped background process to the foreground, handing over terminal control and waiting for its completion.
-- **`bg <pid>`**:
-  - Changes the state of a stopped background process to running (in the background).
-- **`neonate -n <time_sec>`**:
-  - Prints the PID of the most recently created process on the system every `time_sec` seconds until the user presses 'x'.
-- **`iMan <command>`**:
-  - Fetches and displays the man page for a given command by making a socket connection to `man.he.net`.
+This module is the work and intellectual property of vidvathamaiiith. Every
+source file is watermarked, and the author's identity is displayed at start-up.
+Unauthorized copying or false claim of authorship is prohibited.
 
-### Signal Handling
-- **`SIGINT` (Ctrl+C)**: Interrupts only the current foreground process; the shell itself catches and ignores it.
-- **`SIGTSTP` (Ctrl+Z)**: Pushes the current foreground process to the background and changes its state to Stopped.
-- **`SIGCHLD`**: Asynchronous handler that waits on background children to reap zombies and prints an alert when a background process terminates normally or abnormally.
-- **`SIGQUIT` (Ctrl+D)**: Gracefully terminates the shell and kills all attached background processes.
+---
 
-## Build & Run
+## Architecture
+
+All shared configuration, data types, global state declarations, and function
+prototypes are centralised in `include/shell.h`. The concrete storage for the
+shell's shared global state lives in a single definition unit, `src/globals.c`.
+Every other translation unit implements one responsibility:
+
+| File | Responsibility |
+| --- | --- |
+| `src/main.c` | Entry point, input loop, tokenizer, and command dispatch |
+| `src/globals.c` | Definitions for all shared global state |
+| `src/queue.c` | Circular queue backing the persistent command history |
+| `src/hop.c` | `hop` - directory navigation |
+| `src/reveal.c` | `reveal` - directory listing |
+| `src/seek.c` | `seek` - recursive search |
+| `src/log.c` | `log` - persistent history management |
+| `src/proclore.c` | `proclore` - process inspection |
+| `src/activities.c` | `activities` - background process listing |
+| `src/signals.c` | `ping`, `fg`, `bg`, and signal utilities |
+| `src/neonate.c` | `neonate` - most-recent-process monitor |
+| `src/iman.c` | `iMan` - manual pages fetched over TCP |
+| `src/sys.c` | External command execution, redirection, and pipes |
+| `src/sysinfo.c` | `sysinfo` - system and shell diagnostics |
+| `src/mark.c` | `mark` - persistent directory bookmarks |
+| `src/calc.c` | `calc` - inline arithmetic evaluator |
+
+## Execution and Parsing
+
+- External command execution through `execvp`, supporting arbitrary-length
+  argument lists.
+- Foreground (blocking) and background (`&`, non-blocking) execution, with
+  asynchronous reaping of completed background children.
+- Multi-stage pipelines chaining standard output to standard input through an
+  arbitrary number of sequential pipes.
+- Output redirection (`>`), append redirection (`>>`), and input redirection
+  (`<`), all interoperable with pipelines.
+- Alias resolution from the `.myshrc` configuration file.
+
+## Built-in Commands
+
+### Navigation and Filesystem
+
+- `hop [path ...]` - change directory. Supports absolute and relative paths,
+  `.`, `..`, `~` (home), and `-` (previous directory).
+- `reveal [-a] [-l] [path]` - list directory contents. `-a` includes hidden
+  entries; `-l` prints detailed metadata. Output is colour-coded for
+  directories, executables, and regular files.
+- `seek [-d] [-f] [-e] <name> [dir]` - search recursively. `-d` matches
+  directories only, `-f` matches files only, and `-e` auto-enters a single
+  directory match or prints a single file match.
+- `mark` - persistent directory bookmarks:
+  - `mark <name>` saves the current directory under a label.
+  - `mark -g <name>` navigates to a bookmarked directory.
+  - `mark -d <name>` deletes a bookmark.
+  - `mark -l` lists all bookmarks.
+  Bookmarks persist across sessions and integrate with the shell's directory
+  state, so `hop -` continues to work after a jump.
+
+### Processes and Signals
+
+- `proclore [pid]` - report a process's PID, state, process group, virtual
+  memory size, and executable path.
+- `activities` - list all background processes spawned by the shell, sorted by
+  name, showing running or stopped state.
+- `ping <pid> <signal>` - send an arbitrary signal to a process.
+- `fg <pid>` - bring a background or stopped process to the foreground.
+- `bg <pid>` - resume a stopped process in the background.
+- `neonate -n <seconds>` - periodically print the most recently created process
+  on the system until interrupted with `x`.
+
+### History, Diagnostics, and Utilities
+
+- `log`, `log execute <index>`, `log purge` - persistent command history that
+  survives across sessions.
+- `iMan <command>` - fetch and display a manual page over a raw TCP socket.
+- `sysinfo` - a live diagnostics dashboard combining `/proc` telemetry (system
+  uptime, load average, physical memory utilisation) with the shell's own
+  bookkeeping (children spawned, children still alive, and history depth).
+- `calc <expression>` - evaluate an arithmetic expression with full operator
+  precedence. Supports `+`, `-`, `*`, `/`, `%`, `^` (power), unary sign,
+  parentheses, and floating-point numbers. Example: `calc (3+4)*2 - 10/4`.
+
+The `reveal`, `seek`, `log`, `proclore`, `activities`, `sysinfo`, `mark`, and
+`calc` commands all cooperate with the shell's redirection and pipeline
+machinery, so their output can be redirected to a file or piped into another
+command.
+
+## Signal Handling
+
+- `SIGINT` (Ctrl+C) interrupts only the foreground process; the shell ignores
+  it for itself.
+- `SIGTSTP` (Ctrl+Z) suspends the foreground process and moves it to the
+  background in a stopped state.
+- `SIGCHLD` is handled asynchronously to reap background children and announce
+  their termination.
+- End-of-input (Ctrl+D) shuts the shell down gracefully, terminating attached
+  background processes and flushing the command history to disk.
+
+## Build and Run
+
 ```bash
-cd 01_c_shell
+cd c_shell
 make
 ./shell
 ```
+
+The shell targets a Linux or POSIX environment. On Windows, build and run it
+inside the Windows Subsystem for Linux. The build uses GCC with `-Wall` and
+links against the math library.
+
+## Configuration
+
+Aliases are declared in `.myshrc`, one per line, and are loaded automatically at
+start-up. Persistent state is stored in author-watermarked dotfiles in the
+shell's home directory: command history, directory bookmarks, and the temporary
+buffer used to implement built-in pipelines.
+
+## Authorship
+
+Authored and owned by vidvathamaiiith. Every source file carries an authorship
+header, and the watermark `vidvathamaiiith` is embedded throughout the code and
+displayed at runtime. Unauthorized copying or misrepresentation of authorship is
+prohibited.

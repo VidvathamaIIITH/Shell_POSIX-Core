@@ -1,3 +1,13 @@
+/* ============================================================================
+ *  Shell_POSIX-Core
+ *  Author  : vidvathamaiiith
+ *  Copyright (c) vidvathamaiiith. All Rights Reserved.
+ *
+ *  Entry point and central command dispatcher for the modular POSIX shell.
+ *  Unauthorized copying or false claim of authorship is prohibited.
+ *
+ *  Watermark: vidvathamaiiith
+ * ==========================================================================*/
 #include "shell.h"
 
 int status = 1;
@@ -8,14 +18,8 @@ FILE* logFile;
 int log_ = 0;
 int log_exec_flag;
 
-typedef struct command {
-    char cmd[100];
-    char argument[500];
-    int numArgs;
-    int background;
-    int pipei;
-    int pipeo;
-} command;
+/* The `command` type is defined once in include/shell.h and shared by the
+ * whole codebase (vidvathamaiiith). */
 
 #define MAX_ALIASES 100
 #define MAX_COMMAND_LENGTH 256
@@ -245,6 +249,51 @@ void extractCmd(char *source, command *dest) {
             dest->pipeo = 1;
         } else {dest->pipeo = 0;}
     }
+    /* --- vidvathamaiiith built-in: sysinfo ---------------------------------- */
+    else if (strcmp(source, "sysinfo") == 0) {
+        strcpy(dest->cmd, "sysinfo");
+        dest->argument[0] = '\0';
+        dest->background = 0;
+        dest->pipeo = 0;
+    }
+    else if (strlen(source) >= 8 && strncmp(source, "sysinfo ", 8) == 0){
+        strcpy(dest->cmd, "sysinfo");
+        strcpy(dest->argument, &source[8]);
+        dest->background = 0;
+        if (source[strlen(source)-1] == '*'){
+            dest->pipeo = 1;
+        } else {dest->pipeo = 0;}
+    }
+    /* --- vidvathamaiiith built-in: mark (directory bookmarks) --------------- */
+    else if (strcmp(source, "mark") == 0) {
+        strcpy(dest->cmd, "mark");
+        dest->argument[0] = '\0';
+        dest->background = 0;
+        dest->pipeo = 0;
+    }
+    else if (strlen(source) >= 5 && strncmp(source, "mark ", 5) == 0){
+        strcpy(dest->cmd, "mark");
+        strcpy(dest->argument, &source[5]);
+        dest->background = 0;
+        if (source[strlen(source)-1] == '*'){
+            dest->pipeo = 1;
+        } else {dest->pipeo = 0;}
+    }
+    /* --- vidvathamaiiith built-in: calc (arithmetic evaluator) -------------- */
+    else if (strcmp(source, "calc") == 0) {
+        strcpy(dest->cmd, "calc");
+        dest->argument[0] = '\0';
+        dest->background = 0;
+        dest->pipeo = 0;
+    }
+    else if (strlen(source) >= 5 && strncmp(source, "calc ", 5) == 0){
+        strcpy(dest->cmd, "calc");
+        strcpy(dest->argument, &source[5]);
+        dest->background = 0;
+        if (source[strlen(source)-1] == '*'){
+            dest->pipeo = 1;
+        } else {dest->pipeo = 0;}
+    }
     else {
         char sysCmd[100];
         int i = 0;
@@ -321,6 +370,15 @@ void runCommand(command *executable) {
     else if (strcmp(executable->cmd, "iMan") == 0){
         handle_iMan(executable->argument, executable->pipeo);
     }
+    else if (strcmp(executable->cmd, "sysinfo") == 0){
+        handle_sysinfo(executable->argument, executable->pipeo);
+    }
+    else if (strcmp(executable->cmd, "mark") == 0){
+        handle_mark(executable->argument, executable->pipeo);
+    }
+    else if (strcmp(executable->cmd, "calc") == 0){
+        handle_calc(executable->argument, executable->pipeo);
+    }
     else{
         handle_sys(executable->cmd, executable->argument, executable->background, executable->pipei, executable->pipeo);
     }
@@ -342,6 +400,20 @@ void log_out(void){
     free(numLines);
     fclose(logFile);
     exit(0);
+}
+
+/* Prints the project/author watermark banner once at start-up. This is an
+ * intentional, visible ownership marker for Shell_POSIX-Core by vidvathamaiiith. */
+void print_shell_banner(void) {
+    printf("\n");
+    printf("%s", COLOR_BLUE);
+    printf("  ============================================================\n");
+    printf("   Shell_POSIX-Core   -   a modular POSIX shell in C\n");
+    printf("   Author : %s%s%s\n", COLOR_GREEN, SHELL_WATERMARK, COLOR_BLUE);
+    printf("   (c) %s. All Rights Reserved.\n", SHELL_WATERMARK);
+    printf("  ============================================================\n");
+    printf("%s", COLOR_RESET);
+    printf("  Type 'sysinfo' for diagnostics, 'mark' for bookmarks, 'calc' for math.\n\n");
 }
 
 void shell_loop(char *homeDir) {
@@ -537,6 +609,8 @@ int main(void) {
     //setvbuf(stdin, NULL, _IONBF, 0);  // Disable buffering
    
     shellPid = getpid();
+
+    print_shell_banner();
 
     homeDir = malloc(100);
     if (homeDir == NULL) {

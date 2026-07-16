@@ -1,6 +1,20 @@
-# xv6 OS Modifications
+# Shell_POSIX-Core - xv6 Kernel Extensions
 
 This directory contains the unified xv6 source codebase with custom kernel modifications for scheduling algorithms and concurrency features.
+
+---
+
+**Author of the modifications and concurrency work:** vidvathamaiiith
+**Copyright:** (c) vidvathamaiiith for all modifications. All Rights Reserved.
+**Watermark:** vidvathamaiiith
+
+The scheduling extensions, the custom system call, and the user-space
+concurrency programs in this directory are the work of vidvathamaiiith. The
+underlying xv6 base is the Unix-like teaching operating system from MIT (see the
+`LICENSE` file); this project extends it. Unauthorized copying or false claim of
+authorship over the modifications is prohibited.
+
+---
 
 ## Overview
 xv6 is a simple, Unix-like teaching operating system developed at MIT. While it provides a basic kernel, filesystem, and simple Round-Robin scheduler, it lacks advanced scheduling policies, user-space threading primitives, and robust concurrency mechanisms out of the box. This project extensively modifies xv6 to address these gaps by implementing new scheduling disciplines and adding advanced concurrency paradigms.

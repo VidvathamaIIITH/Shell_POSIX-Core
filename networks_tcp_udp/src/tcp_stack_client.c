@@ -1,3 +1,10 @@
+/* ============================================================================
+ *  Shell_POSIX-Core
+ *  Author  : vidvathamaiiith
+ *  Copyright (c) vidvathamaiiith. All Rights Reserved.
+ *  Unauthorized copying or false claim of authorship is prohibited.
+ *  Watermark: vidvathamaiiith
+ * ==========================================================================*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

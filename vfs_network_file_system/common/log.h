@@ -1,3 +1,10 @@
+/* ============================================================================
+ *  Shell_POSIX-Core
+ *  Author  : vidvathamaiiith
+ *  Copyright (c) vidvathamaiiith. All Rights Reserved.
+ *  Unauthorized copying or false claim of authorship is prohibited.
+ *  Watermark: vidvathamaiiith
+ * ==========================================================================*/
 #ifndef LOG_H
 #define LOG_H
 

@@ -1,26 +1,58 @@
+/* ============================================================================
+ *  Shell_POSIX-Core
+ *  Author  : vidvathamaiiith
+ *  Copyright (c) vidvathamaiiith. All Rights Reserved.
+ *
+ *  Central definition unit for every piece of shared global state used across
+ *  the modular shell. Types, macros and extern declarations live in shell.h;
+ *  their concrete storage is defined here.
+ *
+ *  Watermark: vidvathamaiiith
+ * ==========================================================================*/
 #include "../include/shell.h"
 
+/* Project watermark - referenced by the startup banner and diagnostics.      */
+const char *SHELL_WATERMARK = "vidvathamaiiith";
 
-
+/* Core shell identity / status */
 pid_t shellPid;
 int error = 0;
-
-
-#define MAX_SIZE 15
-#define STRING_LENGTH 1024
-
-#define BUFFER_SIZE 4096
-#define BUFFER_SIZE_RESPONSE 100000
-#define PORT 80
-
-#define RECURSION_DEPTH 10000
 int recurse = 0;
 
-typedef struct {
-    char items[MAX_SIZE][STRING_LENGTH];  // Array to store strings
-    int front;                            // Index of the front element
-    int rear;                             // Index of the rear element
-    int size;                             // Current size of the queue
-} Queue;
+/* Directory state */
+char *homeDir = NULL;
+char *currentDir = NULL;
+char *prevDir = NULL;
+char *prevSysCmd = NULL;
+char *log_exec = NULL;
 
-// Function to initialize the queue
+/* Persistent command history */
+Queue q;
+
+/* Pipe / redirection machinery.  The intermediate pipe buffer is a hidden,
+ * author-watermarked file so it never collides with user data.              */
+char pipe_file[] = ".vidvathamaiiith_pipe_buffer";
+int user_pipe = 0;
+int total_pipes = 0;
+int pipe_counter = 0;
+int cmd_num = 0;
+int pipe_count_pc[PIPE_MAX];
+int pipes[PIPE_MAX][PIPE_MAX][2];
+
+/* Process bookkeeping */
+struct bgProcs spawned_processes[PROC_MAX];
+struct bgProcs background_processes[PROC_MAX];
+int num_procs = 0;
+int num_bg = 0;
+pid_t current_fg_proc = 0;
+
+/* System-command timing / prompt decoration */
+int sys = 0;
+int elapsedTime = 0;
+struct timeval start, end;
+
+/* seek() shared search state */
+int countMatches = 0;
+char *matchedFiles[MATCH_MAX];
+int direc = 0;
+int exec = 0;

@@ -1,3 +1,9 @@
+/* ============================================================================
+ *  Shell_POSIX-Core  -  Author: vidvathamaiiith
+ *  Copyright (c) vidvathamaiiith. All Rights Reserved.
+ *  Unauthorized copying or false claim of authorship is prohibited.
+ *  Watermark: vidvathamaiiith
+ * ==========================================================================*/
 #include "../include/shell.h"
 
 void read_lines(FILE *file, Queue *q, int *line_count) {

@@ -1,40 +1,75 @@
-# TCP over UDP Network Stack & Multiplayer Tic-Tac-Toe
+# Shell_POSIX-Core - Reliable Transport over UDP
 
-This project contains two distinct networking features:
-1. A reliable data transfer protocol implemented entirely over connectionless UDP sockets.
-2. A multiplayer Tic-Tac-Toe game leveraging standard network sockets.
+This component contains two related networking projects:
 
-## Exhaustive Feature List
+1. A reliable data-transfer protocol implemented entirely on top of
+   connectionless UDP sockets.
+2. A multiplayer terminal game that exercises the networking layer end to end.
 
-### 1. Custom TCP-over-UDP Stack (`tcp_stack_client.c`, `tcp_stack_server.c`)
-- **Custom Packet Structure**: Data is wrapped in a `data_packet` struct containing a `sequence_number` and `total_chunks` metadata header.
-- **Data Chunking**: Messages are automatically fragmented into fixed-size chunks (e.g., 512 bytes) before transmission.
-- **Reliable Transmission**:
-  - Requires the receiver to send back Acknowledgement packets (ACKs) containing the sequence number of the successfully received chunk.
-  - Implements dynamic socket receive timeouts using `setsockopt` and `SO_RCVTIMEO` (set to 100ms).
-- **Retransmission Logic**: If an ACK is not received within the timeout window (or if an ACK is artificially lost via `simulate_ack_loss`), the sender explicitly retransmits the dropped chunk.
-- **Reconstruction**: The receiver tracks `expected_chunks` and continuously listens until all ordered chunks arrive.
+---
 
-### 2. Multiplayer Tic-Tac-Toe (`client.c`, `server.c`, `client_udp.c`, `server_udp.c`)
-- **Game Engine**: A fully functional Tic-Tac-Toe engine managing board state (`initializeBoard`, `printBoard`, `checkWin`, `checkDraw`).
-- **Concurrent/Networked Players**: 
-  - The server manages connections for Player 1 and Player 2.
-  - Alternates turns (`currentPlayer`), broadcasting the updated board state to both clients after each valid move.
-- **Validation**: Enforces strict move validation (`isValidMove`) rejecting out-of-bounds or overwritten coordinates.
-- **Replayability**: Contains a unified `promptReplay` loop asking clients if they want to rematch, resetting board state if both agree.
+**Author:** vidvathamaiiith
+**Copyright:** (c) vidvathamaiiith. All Rights Reserved.
+**Watermark:** vidvathamaiiith
 
-## Build & Run
+This module is the work and intellectual property of vidvathamaiiith. Every
+source file is watermarked. Unauthorized copying or false claim of authorship is
+prohibited.
+
+---
+
+## 1. Reliable Transport over UDP (`tcp_stack_client.c`, `tcp_stack_server.c`)
+
+A connection-style, reliable transport layer built on UDP.
+
+- Custom packet framing: each datagram is wrapped in a `data_packet` structure
+  carrying a sequence number and total-chunk metadata.
+- Fragmentation: messages are split into fixed-size chunks (for example, 512
+  bytes) before transmission.
+- Reliable delivery: the receiver returns an acknowledgement for each
+  successfully received chunk, identified by its sequence number.
+- Timeouts: the sender arms a receive timeout on its socket using `setsockopt`
+  with `SO_RCVTIMEO` (100 ms).
+- Retransmission: if an acknowledgement does not arrive within the timeout
+  window, or is deliberately dropped by the loss-simulation hook, the sender
+  retransmits the affected chunk.
+- Reassembly: the receiver tracks the expected number of chunks and reconstructs
+  the complete, ordered message.
+
+## 2. Multiplayer Game (`client.c`, `server.c`, `client_udp.c`, `server_udp.c`)
+
+A networked, two-player terminal game.
+
+- A complete game engine managing board state, win detection, and draw
+  detection.
+- A server that manages both players, alternates turns, and broadcasts the
+  updated board to both clients after each valid move.
+- Strict move validation that rejects out-of-bounds or already-occupied
+  positions.
+- A replay loop that offers a rematch and resets the board when both players
+  agree.
+
+## Build and Run
+
 ```bash
-cd 04_networks_tcp_over_udp
-make
+cd networks_tcp_udp
+make                          # builds the TCP client and server
 
-# For the Tic-Tac-Toe Game:
+# Multiplayer game (run each in a separate terminal):
 ./src/server
-./src/client  # run in two separate terminals
+./src/client
 
-# For testing TCP over UDP reliability:
-gcc src/tcp_stack_server.c -o src/tcp_stack_server
-gcc src/tcp_stack_client.c -o src/tcp_stack_client
+# Reliable transport over UDP:
+gcc -Wall -o src/tcp_stack_server src/tcp_stack_server.c
+gcc -Wall -o src/tcp_stack_client src/tcp_stack_client.c
 ./src/tcp_stack_server
 ./src/tcp_stack_client
 ```
+
+All components target a Linux or POSIX environment. On Windows, build and run
+them inside the Windows Subsystem for Linux.
+
+## Authorship
+
+Authored and owned by vidvathamaiiith. Unauthorized copying or misrepresentation
+of authorship is prohibited.

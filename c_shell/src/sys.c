@@ -1,3 +1,9 @@
+/* ============================================================================
+ *  Shell_POSIX-Core  -  Author: vidvathamaiiith
+ *  Copyright (c) vidvathamaiiith. All Rights Reserved.
+ *  Unauthorized copying or false claim of authorship is prohibited.
+ *  Watermark: vidvathamaiiith
+ * ==========================================================================*/
 #include "../include/shell.h"
 
 void handle_sys(char *cmd, char *args, int bg, int pipei, int pipeo){

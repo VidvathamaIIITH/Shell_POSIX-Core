@@ -1,3 +1,10 @@
+/* ============================================================================
+ *  Shell_POSIX-Core
+ *  Author  : vidvathamaiiith
+ *  Copyright (c) vidvathamaiiith. All Rights Reserved.
+ *  Unauthorized copying or false claim of authorship is prohibited.
+ *  Watermark: vidvathamaiiith
+ * ==========================================================================*/
 // tcp_server.c
 #include <stdio.h>
 #include <stdlib.h>

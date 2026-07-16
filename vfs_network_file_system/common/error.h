@@ -1,3 +1,10 @@
+/* ============================================================================
+ *  Shell_POSIX-Core
+ *  Author  : vidvathamaiiith
+ *  Copyright (c) vidvathamaiiith. All Rights Reserved.
+ *  Unauthorized copying or false claim of authorship is prohibited.
+ *  Watermark: vidvathamaiiith
+ * ==========================================================================*/
 // General Errors
 #define ERR_OK 0                   // Operation successful
 #define ERR_INVALID_REQUEST 1      // Malformed or invalid request
